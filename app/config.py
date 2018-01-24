@@ -21,4 +21,8 @@ modelPath = "C:/data/lahan/model/DATATRAIN_decisionTree.pkl"
 shpPath = "C:/data/lahan/shp"
 outputPath = "C:/data/lahan/hasil/"
 
+ftpHost = "localhost"
+ftpUser = "akhiyarwaladi"
+ftpPaswd = "rickss12"
+
 

@@ -2,6 +2,7 @@ from ftplib import FTP
 import os
 from datetime import datetime
 import shutil
+import config
 def downloadFile(liScene):
 	boolScene = False
 	# liscene adalah list yang sudah selesai diproses
@@ -13,8 +14,8 @@ def downloadFile(liScene):
 	#print now.year, now.month, now.day, now.hour, now.minute, now.second # check every datetime detail
 	ftp = FTP( )
 	# buka koneksi baru ke ftp
-	ftp.connect(host='localhost', port=21, timeout=123456)
-	ftp.login(user='akhiyarwaladi', passwd='rickss12')
+	ftp.connect(host=config.ftpHost, port=21, timeout=123456)
+	ftp.login(user=config.ftpUser, passwd=config.ftpPaswd)
 	#ftp.retrlines('LIST') # use to check file after connected
 	ftp.cwd('L8_REFLECTANCE_MS')
 	year = '2015'
