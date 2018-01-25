@@ -20,7 +20,6 @@ import pandas as pd
 import numpy as np
 import os.path
 import ftpClient as ft
-import ftpSimodi as fs
 import shutil
 import gc
 
@@ -133,7 +132,7 @@ def tail():
         
         arcpy.CheckOutExtension("spatial")
         # pass list yang telah selesai ke ftp download
-        filenameNow, scene, boolScene, year, month = fs.downloadFile(liScene)
+        filenameNow, scene, boolScene, year, month = ft.downloadFile(liScene)
 
         if(boolScene == False):
             print "Data hari ini selesai diproses"
@@ -165,7 +164,11 @@ def tail():
         if(os.path.exists(dataPath + "TOA_B3" + ".TIF")):
             os.remove(dataPath + "TOA_B3" + ".TIF")
         # Ambil hanya band 3 dan jadikan raster
-        b_green = arcpy.Raster( dataPath  + "/B3" ) * 1.0
+        try:
+            b_green = arcpy.Raster( dataPath  + "/B3" ) * 1.0
+        except :
+            b_green = arcpy.Raster( dataPath  + "/Band_3" ) * 1.0
+        
         print ("saving b3")
         msg = str(datetime.now()) + '\t' + "saving b3 \n"
         redis.rpush(config.MESSAGES_KEY, msg)
@@ -178,7 +181,11 @@ def tail():
         if(os.path.exists(dataPath + "TOA_B5" + ".TIF")):
             os.remove(dataPath + "TOA_B5" + ".TIF")
         # Ambil hanya band 5 dan jadikan raster
-        b_nir = arcpy.Raster( dataPath  + "/B5" ) * 1.0
+        try:
+            b_nir = arcpy.Raster( dataPath  + "/B5" ) * 1.0
+        except:
+            b_nir = arcpy.Raster( dataPath  + "/Band_5" ) * 1.0
+        
         print ("saving b5")
         msg = str(datetime.now()) + '\t' + "saving b5 \n"
         redis.rpush(config.MESSAGES_KEY, msg)
@@ -191,7 +198,11 @@ def tail():
         if(os.path.exists(dataPath + "TOA_B6" + ".TIF")):
            os.remove(dataPath + "TOA_B6" + ".TIF")
         # Ambil hanya band 6 dan jadikan raster
-        b_swir1 = arcpy.Raster( dataPath + "/B6") * 1.0
+        try:
+            b_swir1 = arcpy.Raster( dataPath + "/B6") * 1.0
+        except Exception as e:
+            b_swir1 = arcpy.Raster( dataPath + "/Band_6") * 1.0
+
         msg = str(datetime.now()) + '\t' + "saving b6 \n"
         redis.rpush(config.MESSAGES_KEY, msg)
         redis.publish(config.CHANNEL_NAME, msg)
