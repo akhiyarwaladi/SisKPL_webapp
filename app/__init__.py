@@ -9,7 +9,6 @@ from celery.task.control import revoke
 import urllib2
 from assets import assets
 import config
-import celeryconfig
 import os
 from sklearn.externals import joblib
 
@@ -119,9 +118,11 @@ def clear_all():
 
 @celery.task
 def tail():
-
+    tupDateNow = datetime.now()
     while(1):
         # buka file csv untuk mengetahui scene yang telah selesai diproses
+        #arcpy.env.workspace = config.gdbPath
+
         log = pd.read_csv("logComplete.csv")
         liScene = log["scene"].tolist()
         liDate = log["dateComplete"].tolist()
@@ -134,9 +135,20 @@ def tail():
         # pass list yang telah selesai ke ftp download
         filenameNow, scene, boolScene, year, month = ft.downloadFile(liScene)
 
+        del log
+        del liScene
+        del liDate
+
         if(boolScene == False):
             print "Data hari ini selesai diproses"
-            time.sleep(1000)
+            tupDateLoop = datetime.now()
+            while (tupDateNow.day == tupDateLoop.day):
+                print "menunggu hari berganti :)"
+                time.sleep(10)
+                tupDateLoop = datetime.now()
+                
+            tupDateNow = tupDateLoop
+            print "hari telah berganti"
 
         #definisikan nama file yang akan diproses
         filename = filenameNow
@@ -200,7 +212,7 @@ def tail():
         # Ambil hanya band 6 dan jadikan raster
         try:
             b_swir1 = arcpy.Raster( dataPath + "/B6") * 1.0
-        except Exception as e:
+        except:
             b_swir1 = arcpy.Raster( dataPath + "/Band_6") * 1.0
 
         msg = str(datetime.now()) + '\t' + "saving b6 \n"
@@ -220,9 +232,13 @@ def tail():
 
         # load semua raster yang telah dikonversi diawal
         rasterarrayband6 = arcpy.RasterToNumPyArray(dataPath + "TOA_B3.TIF")
+        rasterarrayband6 = np.array(rasterarrayband6, dtype=np.uint32)  
         rasterarrayband5 = arcpy.RasterToNumPyArray(dataPath + "TOA_B5.TIF")
+        rasterarrayband5 = np.array(rasterarrayband5, dtype=np.uint32)
         rasterarrayband3 = arcpy.RasterToNumPyArray(dataPath + "TOA_B6.TIF")
-        
+        rasterarrayband3 = np.array(rasterarrayband3, dtype=np.uint32)
+
+        print rasterarrayband6.dtype
         print("Change raster format to numpy array")
         # gabungkan 3 array data secara horizontal
         data = np.array([rasterarrayband6.ravel(), rasterarrayband5.ravel(), rasterarrayband3.ravel()], dtype=np.int16)
@@ -230,6 +246,7 @@ def tail():
         data = data.transpose()
 
         # langsung hapus variabel yang tidak digunakan lagi
+        del rasterarrayband6
         del rasterarrayband5
         del rasterarrayband3
 
@@ -326,10 +343,12 @@ def tail():
         redis.rpush(config.MESSAGES_KEY, msg)
         redis.publish(config.CHANNEL_NAME, msg)
 
+        rasterarrayband6 = arcpy.RasterToNumPyArray(dataPath + "TOA_B3.TIF")
         # reshape numpy array 1 dimensi ke dua dimensi sesuai format raster
         band1 = np.reshape(kelasAllArray, (-1, rasterarrayband6[0].size))
         # ubah tipe data ke unsigned integer
         band1 = band1.astype(np.uint8)
+        del rasterarrayband6
 
         # load raster band6 untuk kebutuhan projeksi dan batas batas raster
         raster = arcpy.Raster(dataPath + "TOA_B6.TIF")
@@ -346,7 +365,6 @@ def tail():
 
         # hapus yang tidak dipakai lagi
         del raster
-        del rasterarrayband6
         del kelasAllArray
 
         # save the raster
@@ -384,8 +402,8 @@ def tail():
         inRas = Raster(outputPath)
         # jika file cm bernilai 1 = cloud, 2 = shadow, 11 = border
         # ubah nilai tersebut menjadi 1 dan lainnya menjadi 0
-        inRas_mask = Con((mask == 1), 1, Con((mask == 2), 1, Con((mask == 11), 1, 0)))
-        #inRas_mask = Con((mask == 1), 1, Con((mask == 2), 1, Con((mask == 11), 1, Con((mask == 3), 1, Con((mask == 4), 1, Con((mask == 5), 1, Con((mask == 6), 1, Con((mask == 7), 1, 0))))))))
+        #inRas_mask = Con((mask == 1), 1, Con((mask == 2), 1, Con((mask == 11), 1, 0)))
+        inRas_mask = Con((mask == 1), 1, Con((mask == 2), 1, Con((mask == 11), 1, Con((mask == 3), 1, Con((mask == 4), 1, Con((mask == 5), 1, Con((mask == 6), 1, Con((mask == 7), 1, 0))))))))
 
         # buat raster yang merupakan nilai no data dari hasil kondisi diatas, hasilnya nodata = 1
         # saya juga tidak mengerti yang bukan cloud jadi no data
@@ -422,19 +440,34 @@ def tail():
             # simpan hasil masking
             
             outExtractByMask.save(os.path.dirname(outputPath) + "/" + filenameOut.split(".")[0] + "_maskShp.TIF")
+            finalPath = config.finalOutputPath + year + "/" + month + "/" + filenameNow.split(".")[0]
+            print finalPath
+            if( os.path.exists(finalPath) ):
+                shutil.rmtree(finalPath)
+            os.makedirs(finalPath)
+            arcpy.CopyRaster_management( outExtractByMask, finalPath + "/" + filenameOut)
             # hapus lagi dan lagi variabel yang tidak digunakan
             del inMaskData
             del inRasData
             del outExtractByMask        
         except:
             print "diluar indonesia shp"
+            finalPath = config.finalOutputPath + year + "/" + month + "/" + filenameNow.split(".")[0]
+            print finalPath
+            if( os.path.exists(finalPath) ):
+                shutil.rmtree(finalPath)
+            os.makedirs(finalPath)
+            arcpy.CopyRaster_management( inRasData, finalPath + "/" + filenameOut)
             pass
         
         ########################## SELESAI ################################################
 
-        arcpy.Delete_management("in_memory")
 
         ####################### SAVE LOG DATA YANG TELAH SELESAI DIPROSES ########################################
+        log = pd.read_csv("logComplete.csv")
+        liScene = log["scene"].tolist()
+        liDate = log["dateComplete"].tolist()
+
         liScene.append(scene)
         liDate.append(str(datetime.now()))
 
@@ -459,10 +492,20 @@ def tail():
         del serDate
         del log
         del log2
+
         ##########################################################################################################
         # delete downloaded data in workstation
-        shutil.rmtree(os.path.dirname(dataPath))
-        #shutil.rmtree(outFolder)
+        dataFolder = os.listdir(config.dataPath)
+        print dataFolder
+        if(len(dataFolder) > 1):    
+            print config.dataPath + dataFolder[0]
+            shutil.rmtree(config.dataPath + dataFolder[0])
+
+        hasilFolder = os.listdir(config.outputPath)
+        print hasilFolder
+        if(len(hasilFolder) > 1):
+            print config.outputPath + hasilFolder[0]
+            shutil.rmtree(config.outputPath + hasilFolder[0])
         print ("Finished ..")
         msg = str(datetime.now()) + '\t' + "Finished ... \n"
         redis.rpush(config.MESSAGES_KEY, msg)
@@ -477,9 +520,12 @@ def tail():
         for key in dictLocal.keys():
             del key
         clear_all()
-        print "local var: " + str(locals())
+        # bersih bersih lainnya
         gc.collect()
-
+        #shutil.rmtree(config.gdbPath)
+        arcpy.Delete_management(config.gdbPathDefault)
+        arcpy.Delete_management("in_memory")
+        arcpy.env.overwriteOutput = True
 
 class TailNamespace(BaseNamespace):
     def listener(self):

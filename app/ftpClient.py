@@ -21,13 +21,13 @@ def downloadFile(liScene):
 	#ftp.retrlines('LIST') # use to check file after connected
 
 	ftp.cwd('L8_REFLECTANCE_MS')
-	year = '2017'
+	year = '2015'
 	ftp.cwd(year)
 	folderTahun = ftp.nlst()
 
-
-	month = '2015_99'
-	ftp.cwd(folderTahun[-1])
+	month = '2015_29'
+	#month = folderTahun[-1]
+	ftp.cwd(month)
 	folderTerbaru = ftp.nlst()
 
 	while (len(folderTerbaru) == 0):

@@ -15,11 +15,14 @@ CHANNEL_NAME = 'tail-channel'
 SOCKETIO_CHANNEL_2 = 'val-message'
 MESSAGES_KEY_2 = 'val'
 CHANNEL_NAME_2 = 'val-channel'
-
+#DATATRAIN_decisionTree.pkl decTree_parameter.pkl
 dataPath = "C:/data/lahan/input/"
-modelPath = "C:/data/lahan/model/DATATRAIN_decisionTree.pkl"
+modelPath = "C:/data/lahan/model/decTree_default.pkl"
 shpPath = "C:/data/lahan/shp"
 outputPath = "C:/data/lahan/hasil/"
+finalOutputPath = "C:/data/lahan/hasil_akhir/"
+gdbPath = "C:/data/lahan/data.gdb"
+gdbPathDefault = "C:/Users/CI/Documents/ArcGIS/Default2.gdb"
 
 ftpHost = "localhost"
 ftpUser = "akhiyarwaladi"
