@@ -395,6 +395,7 @@ def tail():
         #overwriteoutputPath outputPath enable  
         arcpy.env.workspace = config.outputPath     
         arcpy.env.overwriteOutput = True        
+        
         #majority filter
         arcpy.CheckOutExtension("Spatial")
         outMajFilt = MajorityFilter(outputPath, "FOUR", "MAJORITY")
