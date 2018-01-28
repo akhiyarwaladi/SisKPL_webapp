@@ -12,7 +12,6 @@ import config
 import os
 from sklearn.externals import joblib
 
-
 import arcpy
 from arcpy.sa import *
 import pandas as pd
