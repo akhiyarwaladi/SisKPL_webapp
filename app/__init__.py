@@ -88,7 +88,7 @@ def index():
                 tail.delay()
                 flash('Task started. Please wait until complete', 'info')
         else:
-            flash('Internet connection is bad. Please pay your internet bill :)','error')
+            flash('Internet connection is bad. Please check your internet source','error')
 
     return render_template('index.html')
 

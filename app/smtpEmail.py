@@ -2,7 +2,7 @@ import smtplib
 from email.MIMEMultipart import MIMEMultipart
 from email.MIMEText import MIMEText
 def kirimEmail(pesan):
-	print("Mengirim email ke " + str(toaddr))
+	
 	fromaddr = "akiyar18@gmail.com"
 	toaddr = ["akiyar18@gmail.com", "akiyar@apps.ipb.ac.id", "imas.sitanggang@apps.ipb.ac.id"]
 	print("Mengirim email ke " + str(toaddr))

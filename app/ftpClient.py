@@ -4,7 +4,7 @@ from datetime import datetime
 import shutil
 import config
 import smtpEmail as se
-
+import time
 def downloadFile(liScene):
 	boolScene = False
 	# liscene adalah list yang sudah selesai diproses
@@ -25,14 +25,14 @@ def downloadFile(liScene):
 	ftp.cwd(year)
 	folderTahun = ftp.nlst()
 
-	month = '2015_30'
+	month = '2015_29'
 	#month = folderTahun[-1]
 	ftp.cwd(month)
 	folderTerbaru = ftp.nlst()
 
 	while (len(folderTerbaru) == 0):
-		print ("Belum ada data di dalam folder terbaru ("+folderTerbaru+")") 
-		se.kirimEmail("Belum ada data di dalam folder terbaru ("+folderTerbaru+")")
+		print ("Belum ada data di dalam folder terbaru ("+month+")") 
+		se.kirimEmail("Belum ada data di dalam folder terbaru ("+month+")")
 		time.sleep(60)
 		ftp = FTP( )
 		# buka koneksi baru ke ftp
