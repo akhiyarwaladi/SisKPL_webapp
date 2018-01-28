@@ -25,7 +25,7 @@ def downloadFile(liScene):
 	ftp.cwd(year)
 	folderTahun = ftp.nlst()
 
-	month = '2015_29'
+	month = '2015_30'
 	#month = folderTahun[-1]
 	ftp.cwd(month)
 	folderTerbaru = ftp.nlst()
@@ -33,7 +33,15 @@ def downloadFile(liScene):
 	while (len(folderTerbaru) == 0):
 		print ("Belum ada data di dalam folder terbaru ("+folderTerbaru+")") 
 		se.kirimEmail("Belum ada data di dalam folder terbaru ("+folderTerbaru+")")
-		time.sleep(5)
+		time.sleep(60)
+		ftp = FTP( )
+		# buka koneksi baru ke ftp
+		ftp.connect(host=config.ftpHost, port=21, timeout=123456)
+		ftp.login(user=config.ftpUser, passwd=config.ftpPaswd)
+		ftp.cwd('L8_REFLECTANCE_MS')
+		ftp.cwd(year)
+		ftp.cwd(month)
+
 		folderHari = ftp.nlst()
 
 	for scene in folderTerbaru:
