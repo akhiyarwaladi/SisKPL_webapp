@@ -386,6 +386,22 @@ def tail():
         arcpy.CopyRaster_management(out_ras, outputPath)
         # definisikan projeksi dengan referensi spatial
         arcpy.DefineProjection_management(outputPath, spatialref)
+                
+        print ("Majority Filter..")
+        msg = str(datetime.now()) + '\t' + "majority filter..\n"
+        redis.rpush(config.MESSAGES_KEY, msg)
+        redis.publish(config.CHANNEL_NAME, msg)
+        
+        #overwriteoutputPath outputPath enable  
+        arcpy.env.workspace = config.outputPath     
+        arcpy.env.overwriteOutput = True        
+        #majority filter
+        arcpy.CheckOutExtension("Spatial")
+        outMajFilt = MajorityFilter(outputPath, "FOUR", "MAJORITY")
+
+        #Save the output 
+        outMajFilt.save(outputPath)
+
         # hapus yang tidak digunakan lagi
         del out_ras
         del band1
@@ -394,6 +410,8 @@ def tail():
         del cellsize2
         del extent
         del pnt
+
+
         ########################### MASKING CLOUD AND BORDER #########################
         print("Masking Cloud")
         # load file cm hasil download yang disediakan
@@ -541,6 +559,8 @@ class TailNamespace(BaseNamespace):
         self.pubsub.subscribe(config.CHANNEL_NAME_2)
         i=8
         for m in self.pubsub.listen():
+            if(i==100):
+                i=8
             if m['type'] == 'message':
                 self.emit(config.SOCKETIO_CHANNEL, m['data'])
                 self.emit(config.SOCKETIO_CHANNEL_2, i)
